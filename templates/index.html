@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Press</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            margin: 0;
+            padding: 2rem;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: auto;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #0c65e4;
+            margin-top: 0;
+            text-align: center;
+            font-size: 2.5em;
+        }
+
+        h2 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 0.5rem;
+            margin-top: 2.5rem;
+            font-size: 1.5em;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 12px 18px;
+            cursor: pointer;
+            font-size: 16px;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s ease-in-out;
+            color: #555;
+        }
+
+        .tab-button:hover {
+            background-color: #f0f2f5;
+            color: #111;
+        }
+
+        .tab-button.active {
+            color: #0c65e4;
+            border-bottom-color: #0c65e4;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            display: inline-block;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0px);
+        }
+
+        .btn-primary {
+            background-color: #0c65e4;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #0a58c4;
+        }
+
+        .btn-success {
+            background-color: #42b72a;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background-color: #3aa822;
+        }
+
+        .btn-danger {
+            background-color: #e41e3f;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background-color: #d01936;
+        }
+
+        .btn:disabled {
+            background-color: #ced4da;
+            cursor: not-allowed;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        fieldset {
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            background-color: #f9f9f9;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        legend {
+            font-weight: 600;
+            font-size: 1.4em;
+            padding: 0 0.75em;
+            color: #333;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        select,
+        input[type="text"] {
+            width: 100%;
+            height: 44px;
+            padding: 0 12px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            background-color: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        select:focus,
+        input[type="text"]:focus {
+            border-color: #0c65e4;
+            box-shadow: 0 0 0 3px rgba(12, 101, 228, 0.2);
+            outline: none;
+        }
+
+        input[type="text"]:disabled {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+
+        .sizes-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-top: 1rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 5px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            transform: scale(1.3);
+            margin-right: 0.8em;
+            accent-color: #0c65e4;
+            pointer-events: none;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            font-weight: 500;
+            font-size: 1.1em;
+            user-select: none;
+        }
+
+        #select_all_sizes_group {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 1.25rem;
+            margin-bottom: -5px;
+        }
+
+        #select_all_sizes_group label {
+            font-weight: bold;
+        }
+
+        .custom-size-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .custom-size-group label {
+            flex-shrink: 0;
+        }
+
+        .custom-size-group input[type="text"] {
+            max-width: 250px;
+        }
+
+        .custom-size-group .checkbox-label-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+
+        #file-list ul {
+            padding-left: 0;
+            list-style-type: none;
+            margin-top: 1rem;
+            text-align: left;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        #file-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        #file-list li:last-child {
+            border-bottom: none;
+        }
+
+        .remove-file {
+            color: red;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 5px;
+            font-size: 1.2em;
+        }
+
+        #status-log {
+            background: #2a2a2a;
+            color: #f0f0f0;
+            padding: 1rem;
+            border-radius: 6px;
+            min-height: 200px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: "SF Mono", "Consolas", "Menlo", monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #0c65e4;
+            animation: spin 1s ease infinite;
+            margin: 20px auto 0;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .controls-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+        }
+
+        #output-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .output-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .output-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .output-item a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .output-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+            background-color: #eee;
+        }
+
+        .output-item-title {
+            font-weight: 600;
+            padding: 10px 12px;
+            background: #f7f7f7;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .output-links {
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+
+        .output-links a {
+            display: block;
+            margin-bottom: 4px;
+            text-decoration: none;
+            color: #0c65e4;
+            word-break: break-all;
+        }
+
+        .output-links a:hover {
+            text-decoration: underline;
+        }
+
+        #setup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(240, 242, 245, 0.95);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            flex-direction: column;
+            padding: 2rem;
+            box-sizing: border-box;
+            display: none;
+        }
+        .setup-box {
+            background: #fff;
+            padding: 3rem 4rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+        }
+        .setup-box h2 {
+            margin-top: 0;
+            font-size: 1.8em;
+            color: #1c1e21;
+        }
+        .setup-box p {
+            font-size: 1.1em;
+            color: #606770;
+            line-height: 1.6;
+        }
+        #main-app-container {
+            display: none; 
+        }
+    </style>
+</head>
+
+<body>
+    <div id="setup-overlay">
+        <div class="setup-box">
+            <h2>First setup</h2>
+            <p>
+                To use Media Press, you need to select a folder on your computer.
+                The program will automatically create a <strong>"Media Press Files"</strong> subfolder in it,
+                where the originals (`source`) and the processing results (`output`) will be stored.
+            </p>
+            <p>We recommend that you select the "Documents" folder or a folder on your disk with sufficient free space.</p>
+            <br>
+            <button class="btn btn-primary" onclick="chooseDirectory()">Select folder...</button>
+        </div>
+    </div>
+
+    <div id="main-app-container">
+        <div class="container">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
+                <h1>Media Press</h1>
+                <p id="work-dir-info" style="font-size: 12px; color: #606770; text-align: right;"></p>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-button active" onclick="openTab(event, 'upload-tab')">Processing</button>
+                <button class="tab-button" onclick="openTab(event, 'output-tab')">Results</button>
+            </div>
+
+            <div id="upload-tab" class="tab-content active">
+                <form id="upload-form">
+                    <fieldset>
+                        <legend>Step 1: Select files</legend>
+                        <button type="button" class="btn btn-primary"
+                            onclick="document.getElementById('file-input').click();">Add files...</button>
+                        <input type="file" name="files[]" multiple id="file-input"
+                            accept=".png,.jpg,.jpeg,.heic,.webp,.mp4,.mov,.webm,.m4a,.avi,.mkv,.mp3,.aac,.wav,.flac">
+                        <div id="file-list"></div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Step 2: Adjust the dimensions</legend>
+                        <div class="sizes-container">
+                            <div id="select_all_sizes_group" class="checkbox-group" onclick="toggleAllSizes(event)">
+                                <input type="checkbox" id="select_all_sizes" checked>
+                                <label for="select_all_sizes">Select all</label>
+                            </div>
+                            <div class="checkbox-group" onclick="toggleCheckbox(event)">
+                                <input type="checkbox" id="size_full" name="sizes_to_process" value="full_size"
+                                    class="size-option" checked>
+                                <label for="size_full">Full Size (original size)</label>
+                            </div>
+                            <div class="checkbox-group" onclick="toggleCheckbox(event)">
+                                <input type="checkbox" id="size_desktop" name="sizes_to_process" value="desktop"
+                                    class="size-option" checked>
+                                <label for="size_desktop">Desktop</label>
+                            </div>
+                            <div class="checkbox-group" onclick="toggleCheckbox(event)">
+                                <input type="checkbox" id="size_tablet" name="sizes_to_process" value="tablet"
+                                    class="size-option" checked>
+                                <label for="size_tablet">Tablet</label>
+                            </div>
+                            <div class="checkbox-group" onclick="toggleCheckbox(event)">
+                                <input type="checkbox" id="size_mobile" name="sizes_to_process" value="mobile"
+                                    class="size-option" checked>
+                                <label for="size_mobile">Mobile</label>
+                            </div>
+                            <div class="custom-size-group">
+                                <div class="checkbox-group" onclick="toggleCheckbox(event)">
+                                    <input type="checkbox" id="size_custom" class="size-option">
+                                    <label for="size_custom">Custom sizes:</label>
+                                </div>
+                                <input type="text" id="custom-sizes-input" name="custom_sizes"
+                                    placeholder="For example: 1920, 800, 400" disabled>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Step 3: Format and quality</legend>
+                        <div class="settings-grid">
+                            <div class="form-group">
+                                <label for="img-format-select">Image format:</label>
+                                <select id="img-format-select" name="image_format">
+                                    <option value="webp">WebP (recommended)</option>
+                                    <option value="jpg">JPG</option>
+                                    <option value="png">PNG</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="video-format-select">Video format:</label>
+                                <select id="video-format-select" name="video_format">
+                                    <option value="mp4">MP4 (H.264)</option>
+                                    <option value="webm">WebM (VP9)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="compression-select">Compression mode:</label>
+                                <select id="compression-select" name="compression_mode">
+                                    <option value="standard">Standard (balance)</option>
+                                    <option value="max_compression">Maximum compression</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Density options:</label>
+                                <div class="checkbox-group" onclick="toggleCheckbox(event)">
+                                    <input type="checkbox" id="density_retina" name="include_retina" value="true"
+                                        checked>
+                                    <label for="density_retina">Enable @2x (Retina)</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button id="submit-btn" type="submit" class="btn btn-success" style="display: none;">Start processing</button>
+                    </div>
+                </form>
+                <div id="loading-spinner" style="display:none; text-align: center; margin-top: 1rem;">
+                    <p id="loading-text">Processing, please wait...</p>
+                    <div class="spinner"></div>
+                </div>
+
+                <h2>Processing status:</h2>
+                <pre id="status-log"></pre>
+            </div>
+
+            <div id="output-tab" class="tab-content">
+                <div class="controls-bar">
+                    <button class="btn btn-primary" onclick="fetchResults()">Update</button>
+                    <button class="btn btn-danger" onclick="clearAll()">Clear all</button>
+                </div>
+                <div id="output-gallery">
+                    <p>The processing results will appear here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const statusLog = document.getElementById('status-log');
+        const customSizeCheckbox = document.getElementById('size_custom');
+        const customSizeInput = document.getElementById('custom-sizes-input');
+        const selectAllCheckbox = document.getElementById('select_all_sizes');
+        const sizeOptionCheckboxes = document.querySelectorAll('.size-option');
+        const workDirInfo = document.getElementById('work-dir-info');
+
+        let selectedFiles = new Map();
+        let logInterval, statusInterval;
+
+        async function onApiReady() {
+            try {
+                console.log("The 'pywebviewready' event fired. API is ready. Querying the status...");
+                const isConfigured = await pywebview.api.is_configured();
+                console.log(`Python's response: isConfigured = ${isConfigured}`);
+
+                if (isConfigured) {
+                    console.log("Showing the main application.");
+                    const workDir = await pywebview.api.get_work_directory();
+                    showApp(workDir);
+                } else {
+                    console.log("Showing the setup screen.");
+                    document.getElementById('setup-overlay').style.display = 'flex';
+                    document.getElementById('main-app-container').style.display = 'none';
+                }
+            } catch (error) {
+                console.error("Critical error during API initialization:", error);
+                document.body.innerHTML = "<h1>Download error. Please restart the application..</h1>";
+            }
+        }
+
+        window.addEventListener('pywebviewready', onApiReady);
+
+
+        async function chooseDirectory() {
+            const selectedDir = await pywebview.api.select_work_directory();
+            if (selectedDir) {
+                showApp(selectedDir);
+            }
+        }
+
+        function showApp(workDir) {
+            document.getElementById('setup-overlay').style.display = 'none';
+            document.getElementById('main-app-container').style.display = 'block';
+            if (workDir) {
+                workDirInfo.innerHTML = `Working folder: <br><strong>${workDir}</strong>`;
+            }
+            fetchResults();
+        }
+        function openTab(evt, tabName) {
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(tb => tb.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+            if (tabName === 'output-tab') fetchResults();
+        }
+
+        function toggleCheckbox(event) {
+            const checkbox = event.currentTarget.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+                if (checkbox.id === 'size_custom') handleCustomSizeChange();
+                if (checkbox.classList.contains('size-option')) updateSelectAllState();
+            }
+        }
+        function toggleAllSizes(event) {
+            const mainCheckbox = event.currentTarget.querySelector('input[type="checkbox"]');
+            mainCheckbox.checked = !mainCheckbox.checked;
+            sizeOptionCheckboxes.forEach(cb => {
+                cb.checked = mainCheckbox.checked;
+                if (cb.id === 'size_custom') handleCustomSizeChange();
+            });
+        }
+        function updateSelectAllState() {
+            selectAllCheckbox.checked = Array.from(sizeOptionCheckboxes).every(cb => cb.checked);
+        }
+        function handleCustomSizeChange() {
+            customSizeInput.disabled = !customSizeCheckbox.checked;
+            if (!customSizeCheckbox.checked) customSizeInput.value = '';
+            else customSizeInput.focus();
+        }
+        sizeOptionCheckboxes.forEach(cb => cb.addEventListener('change', updateSelectAllState));
+
+        document.getElementById('upload-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const loadingText = document.getElementById('loading-text');
+            submitBtn.disabled = true;
+            loadingText.textContent = "File verification...";
+            loadingSpinner.style.display = 'block';
+
+            let formData = new FormData();
+            for (const file of selectedFiles.values()) formData.append('files[]', file);
+
+            const checkResponse = await fetch('/check_files', { method: 'POST', body: formData });
+            const checkData = await checkResponse.json();
+            let proceed = true;
+            let confirmationMessage = '';
+            if (checkData.existing_in_source && checkData.existing_in_source.length > 0) confirmationMessage += `The following files already exist in 'source' and will be overwritten:\n${checkData.existing_in_source.join('\n')}\n\n`;
+            if (checkData.existing_in_output && checkData.existing_in_output.length > 0) confirmationMessage += `The following files have already been processed before:\n${checkData.existing_in_output.join('\n')}\n\n`;
+            if (confirmationMessage) {
+                confirmationMessage += 'Continue processing?';
+                proceed = confirm(confirmationMessage);
+            }
+
+            if (proceed) {
+                loadingText.textContent = "Processing, please wait...";
+                startLogPolling();
+                startStatusPolling();
+                formData = new FormData(document.getElementById('upload-form'));
+                for (const file of selectedFiles.values()) formData.append('files[]', file);
+                if (!customSizeCheckbox.checked) formData.delete('custom_sizes');
+                else {
+                    const sizes = formData.getAll('sizes_to_process');
+                    formData.delete('sizes_to_process');
+                    sizes.forEach(val => { if (val !== 'on') formData.append('sizes_to_process', val); });
+                }
+                await fetch('/upload', { method: 'POST', body: formData });
+            } else {
+                loadingSpinner.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        };
+
+        fileInput.onchange = () => {
+            for (const file of fileInput.files) selectedFiles.set(file.name, file);
+            renderFileList(); fileInput.value = '';
+        };
+        function renderFileList() {
+            const fileListContainer = document.getElementById('file-list');
+            if (selectedFiles.size > 0) {
+                fileListContainer.innerHTML = '<h3>Selected files:</h3>';
+                const list = document.createElement('ul');
+                for (const name of selectedFiles.keys()) {
+                    const item = document.createElement('li');
+                    item.textContent = name;
+                    const removeBtn = document.createElement('span');
+                    removeBtn.textContent = '✖'; removeBtn.className = 'remove-file';
+                    removeBtn.onclick = (e) => { e.stopPropagation(); selectedFiles.delete(name); renderFileList(); };
+                    item.appendChild(removeBtn); list.appendChild(item);
+                }
+                fileListContainer.appendChild(list);
+                submitBtn.style.display = 'inline-block';
+            } else {
+                fileListContainer.innerHTML = ''; submitBtn.style.display = 'none';
+            }
+        }
+
+        function startLogPolling() {
+            fetch('/clear_log').then(() => { if (!logInterval) logInterval = setInterval(() => fetch('/status').then(r => r.json()).then(data => { statusLog.textContent = data.log.join('\n'); statusLog.scrollTop = statusLog.scrollHeight; }), 1500); });
+        }
+        function startStatusPolling() {
+            if (!statusInterval) {
+                statusInterval = setInterval(async () => {
+                    const response = await fetch('/processing_status'); const data = await response.json();
+                    if (data.active_jobs === 0) {
+                        stopPolling();
+                        document.getElementById('loading-text').textContent = "✅ Processing completed!";
+                        setTimeout(() => {
+                            document.getElementById('loading-spinner').style.display = 'none';
+                            submitBtn.disabled = false;
+                            openTab({ currentTarget: document.querySelector("button[onclick*='output-tab']") }, 'output-tab');
+                        }, 2000);
+                    }
+                }, 2000);
+            }
+        }
+        function stopPolling() {
+            clearInterval(logInterval); clearInterval(statusInterval);
+            logInterval = null; statusInterval = null;
+        }
+
+        async function fetchResults() {
+            const gallery = document.getElementById('output-gallery');
+            gallery.innerHTML = '<div class="spinner"></div>';
+            const response = await fetch('/get_results');
+            const data = await response.json();
+            gallery.innerHTML = '';
+            if (!data.results || data.results.length === 0) {
+                gallery.innerHTML = '<p>No files processed yet.</p>';
+                return;
+            }
+            data.results.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'output-item';
+
+                const clickableContainer = document.createElement('div');
+                clickableContainer.style.cursor = 'pointer';
+                clickableContainer.title = `Show '${item.name}' у Finder/Explorer`;
+                clickableContainer.onclick = () => pywebview.api.show_in_finder(item.name);
+
+                if (item.poster) {
+                    const img = document.createElement('img');
+                    img.src = item.poster;
+                    clickableContainer.appendChild(img);
+                }
+
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'output-item-title';
+                titleDiv.textContent = item.name;
+                clickableContainer.appendChild(titleDiv);
+
+                itemDiv.appendChild(clickableContainer);
+
+                const linksDiv = document.createElement('div');
+                linksDiv.className = 'output-links';
+                item.files.forEach(file => {
+                    const link = document.createElement('a');
+                    link.href = file.url;
+                    link.textContent = file.name;
+                    link.target = '_blank';
+                    link.title = file.name;
+                    linksDiv.appendChild(link);
+                });
+                itemDiv.appendChild(linksDiv);
+                gallery.appendChild(itemDiv);
+            });
+        }
+
+        async function clearAll() {
+            const confirmed = confirm("Are you sure you want to delete ALL files from the 'source' and 'output' folders? This action cannot be undone.");
+            if (confirmed) {
+                await fetch('/clear_all', { method: 'POST' });
+                await fetchResults();
+                statusLog.textContent = '--- Source and output folders cleared ---';
+            }
+        }
+    </script>
+</body>
+
+
+</html>

@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+
+# macOS system files
+.DS_Store
+
+# User-generated content (ignore contents, but keep folders)
+source/*
+output/*
+
+# Keep the directories themselves in git
+!source/.gitkeep
+!output/.gitkeep

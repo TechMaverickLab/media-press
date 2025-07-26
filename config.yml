@@ -1,0 +1,40 @@
+# config.yml
+default_image_format: webp
+default_video_format: mp4
+image_profiles:
+  default:
+    format: webp
+    sizes: { mobile: 480, tablet: 768, desktop: 1024 }
+    densities: [1, 2]
+    quality: 85
+    include_full_size: true
+  thumbnail:
+    format: jpg
+    sizes: { thumb: 150 }
+    densities: [1]
+    quality: 80
+    include_full_size: false
+video_profiles:
+  default:
+    format: mp4
+    heights_map:
+      mobile: 480
+      tablet: 720
+      desktop: 1080
+    include_full_size: true 
+    poster_timestamp: "00:00:01"
+
+
+compression_modes:
+  image:
+    standard:
+      quality: 85
+    max_compression:
+      quality: 75
+  video:
+    standard:
+      crf: 23
+      preset: medium
+    max_compression:
+      crf: 28 
+      preset: slow 
