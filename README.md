@@ -1,5 +1,7 @@
 # Media Press 🖼️✨🚀
 
+[![Latest Release](https://img.shields.io/github/v/release/TechMaverickLab/media-press?label=Download&color=brightgreen)](https://github.com/TechMaverickLab/media-press/releases/latest)
+
 **Media Press** is a powerful yet intuitive desktop application for macOS designed for batch processing of images and videos. It automates the routine tasks of preparing media files for the web, saving you valuable time and effort.
 
 Easily convert, resize, and optimize dozens of files in just a few clicks!
