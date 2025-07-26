@@ -4,7 +4,7 @@
 
 Easily convert, resize, and optimize dozens of files in just a few clicks!
 
-![Media Press Screenshot](https://raw.githubusercontent.com/TechMaverickLab/media-press/main/assets/screenshot.png) <!-- Replace with the actual URL to your screenshot -->
+![Media Press Screenshot](https://github.com/TechMaverickLab/media-press/tree/master/assets/assets/screenshot.png) <!-- Replace with the actual URL to your screenshot -->
 
 ## 🌟 Key Features
 
