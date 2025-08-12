@@ -55,6 +55,7 @@ app.config['SECRET_KEY'] = 'a-very-secret-key'
 executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 1)
 config, processing_log, active_futures = {}, [], {}
 
+
 def load_settings():
     global SOURCE_DIR, OUTPUT_DIR
     print(f"Checking the settings file: {SETTINGS_FILE}")
@@ -63,39 +64,50 @@ def load_settings():
             with open(SETTINGS_FILE, 'r') as f:
                 settings = json.load(f)
             
-            base_dir = Path(settings['base_directory'])
-            work_dir = base_dir / APP_DATA_FOLDER_NAME
+            work_dir = Path(settings['work_directory'])
             
             if not work_dir.is_dir():
-                print(f"Warning: Working folder '{work_dir}' not found. Reconfiguration required.")
+                print(f"Warning: Working directory '{work_dir}' not found.")
                 SETTINGS_FILE.unlink(missing_ok=True)
                 return False
 
             app.config['WORK_DIR'] = work_dir
             app.config['SOURCE_DIR'] = work_dir / 'source'
             app.config['OUTPUT_DIR'] = work_dir / 'output'
-
+            
             SOURCE_DIR = app.config['SOURCE_DIR']
             OUTPUT_DIR = app.config['OUTPUT_DIR']
             
             SOURCE_DIR.mkdir(exist_ok=True)
             OUTPUT_DIR.mkdir(exist_ok=True)
             
-            print(f"✅ Settings successfully loaded. Working folder: {work_dir}")
+            print(f"✅ Settings loaded. Working folder: {work_dir}")
             return True
-        except (json.JSONDecodeError, KeyError) as e:
-            print(f"Error loading settings: {e}. Deleting a corrupted file.")
+        except (json.JSONDecodeError, KeyError, TypeError):
+            print("Error loading settings. Delete the corrupted file.")
             SETTINGS_FILE.unlink(missing_ok=True)
             return False
     
-    print("Configuration file not found. Initial configuration required.")
-    return False
+    print("The settings file was not found."); return False
 
 def save_settings(base_directory_path):
-    with open(SETTINGS_FILE, 'w') as f:
-        json.dump({'base_directory': str(base_directory_path)}, f, indent=4)
-    print(f"Settings saved to file: {SETTINGS_FILE}")
-    load_settings()
+    try:
+        base_dir = Path(base_directory_path)
+        work_dir = base_dir / APP_DATA_FOLDER_NAME
+        
+        print(f"Creating a working folder: {work_dir}")
+
+        work_dir.mkdir(exist_ok=True)
+        (work_dir / 'source').mkdir(exist_ok=True)
+        (work_dir / 'output').mkdir(exist_ok=True)
+
+        with open(SETTINGS_FILE, 'w') as f:
+            json.dump({'work_directory': str(work_dir)}, f, indent=4)
+        
+        print(f"Settings saved: {SETTINGS_FILE}")
+        load_settings()
+    except Exception as e:
+        print(f"🚨 Unable to create folder or save settings:{e}")
 
 class Api:
     window: Optional[webview.Window]
@@ -185,19 +197,6 @@ def process_audio_only(file_path, settings):
         log_message(f"✅ Audio {file_path.name} completed.")
     except Exception as e: log_message(f"🚨 Audio processing error {file_path.name}: {e}"); log_message(traceback.format_exc(), level='debug')
 
-def start_processing_job(file_path, user_settings):
-    ext = file_path.suffix.lower()
-    if ext in SUPPORTED_IMAGE_FORMATS:
-        process_image(file_path, config.get('image_profiles', {}).get('default', {}), user_settings)
-    elif ext in SUPPORTED_AV_FORMATS:
-        if has_video_stream(file_path):
-            video_profile = config.get('video_profiles', {}).get('default', {})
-            process_video(file_path, video_profile, user_settings)
-        else:
-            process_audio_only(file_path, user_settings)
-    else:
-        log_message(f"🤔 Skipping an unsupported file: {file_path.name}")
-
 
 def process_image(file_path, profile, settings):
     output_dir = app.config.get('OUTPUT_DIR')
@@ -270,31 +269,28 @@ def process_image(file_path, profile, settings):
 
 def process_video(file_path, profile, settings):
     output_dir = app.config.get('OUTPUT_DIR')
-    if not output_dir:
-        log_message(f"🚨 Critical ERROR: Working folder for results not set.")
-        return
-    
     try:
         target_format, compression_mode = settings.get('video_format', 'mp4'), settings.get('compression_mode', 'standard')
         
-        selected_sizes_keys = settings.get('sizes_to_process', [])
+        selected_sizes = settings.get('sizes_to_process', [])
+        
         heights_map = profile.get('heights_map', {})
-        heights_to_process = {key: val for key, val in heights_map.items() if key in selected_sizes_keys}
+
+        heights_to_process = {label: height for label, height in heights_map.items() if label in selected_sizes}
+
         custom_sizes = get_custom_sizes(settings.get('custom_sizes'))
         heights_to_process.update(custom_sizes)
         
-        log_message(f"  > Selected video sizes: {list(heights_to_process.keys())}")
+        include_full_size = 'full_size' in selected_sizes
 
-        include_full_size = 'full_size' in settings.get('sizes_to_process', [])
-        
         base_name, file_output_folder = file_path.stem, output_dir / file_path.stem
         file_output_folder.mkdir(exist_ok=True)
         video_codec, audio_codec = VIDEO_CODECS.get(target_format, 'libx264'), 'libopus' if target_format == 'webm' else 'aac'
         log_message(f"🎬 Video processing: {file_path.name}")
-        
+
         poster_cmd = [FFMPEG_CMD, "-i", str(file_path), "-ss", "00:00:01", "-vframes", "1", "-vf", "scale=640:-1", "-q:v", "2", str(file_output_folder / f"{base_name}_poster.webp"), "-y"]
         run_command(poster_cmd, "  ✓ Creating a poster:")
-        
+
         std_comp = config.get('compression_modes', {}).get('video', {}).get('standard', {})
         std_crf, std_preset = std_comp.get('crf', 23), std_comp.get('preset', 'medium')
         log_message(f"  ↳ Creating standard versions (crf={std_crf}, preset={std_preset})")
@@ -302,11 +298,11 @@ def process_video(file_path, profile, settings):
         if heights_to_process:
             for size_label, height in heights_to_process.items():
                 cmd = [FFMPEG_CMD, "-i", str(file_path), "-vf", f"scale=-2:{height}", "-c:v", video_codec, "-preset", std_preset, "-crf", str(std_crf), "-c:a", audio_codec, "-b:a", "128k", str(file_output_folder / f"{base_name}_{size_label}.{target_format}"), "-y"]
-                run_command(cmd, f"    ✓ Version created {height}p")
+                run_command(cmd, f"    ✓ {height}p version created")
         
         if include_full_size:
             cmd = [FFMPEG_CMD, "-i", str(file_path), "-c:v", video_codec, "-preset", std_preset, "-crf", str(std_crf), "-c:a", audio_codec, "-b:a", "192k", str(file_output_folder / f"{base_name}_full_size.{target_format}"), "-y"]
-            run_command(cmd, f"    ✓ Version created full_size")
+            run_command(cmd, f"    ✓ Full_size version created")
             
         if compression_mode == 'max_compression':
             max_comp = config.get('compression_modes', {}).get('video', {}).get('max_compression', {})
@@ -316,17 +312,32 @@ def process_video(file_path, profile, settings):
             if heights_to_process:
                 for size_label, height in heights_to_process.items():
                     cmd = [FFMPEG_CMD, "-i", str(file_path), "-vf", f"scale=-2:{height}", "-c:v", video_codec, "-preset", max_preset, "-crf", str(max_crf), "-c:a", audio_codec, "-b:a", "128k", str(file_output_folder / f"{base_name}_{size_label}_compressed.{target_format}"), "-y"]
-                    run_command(cmd, f"      ✓ Compressed version created {height}p")
+                    run_command(cmd, f"      ✓ Created a compressed {height}p version")
             
             if include_full_size:
                 cmd = [FFMPEG_CMD, "-i", str(file_path), "-c:v", video_codec, "-preset", max_preset, "-crf", str(max_crf), "-c:a", audio_codec, "-b:a", "192k", str(file_output_folder / f"{base_name}_full_size_compressed.{target_format}"), "-y"]
-                run_command(cmd, f"      ✓ Compressed version created full_size")
+                run_command(cmd, f"      ✓ Created a compressed full_size version")
                 
         log_message(f"✅ Video {file_path.name} processed.")
-    except Exception as e:
+    except Exception as e: 
         log_message(f"🚨 Video processing error {file_path.name}: {e}")
         log_message(traceback.format_exc(), level='debug')
-        
+
+
+
+def start_processing_job(file_path, user_settings):
+    ext = file_path.suffix.lower()
+    if ext in SUPPORTED_IMAGE_FORMATS:
+        process_image(file_path, config.get('image_profiles', {}).get('default', {}), user_settings)
+    elif ext in SUPPORTED_AV_FORMATS:
+        if has_video_stream(file_path):
+            video_profile = config.get('video_profiles', {}).get('default', {})
+            process_video(file_path, video_profile, user_settings)
+        else:
+            process_audio_only(file_path, user_settings)
+    else:
+        log_message(f"🤔 Skipping an unsupported file: {file_path.name}")    
+
 def get_custom_sizes(custom_sizes_str):
     if custom_sizes_str:
         try: return { f"custom_{s.strip()}px": int(s.strip()) for s in custom_sizes_str.split(',') if s.strip().isdigit()}
@@ -362,6 +373,7 @@ def check_files():
     
     for f in files:
         filename = f.filename
+
         if not filename:
             continue
         
@@ -391,6 +403,7 @@ def upload_files():
     
     for file in files:
         filename = file.filename
+
         if not filename:
             continue
             
@@ -491,7 +504,7 @@ def free_up_port(port):
             pids = result.stdout.strip().split('\n')
             for pid_str in pids:
                 if pid_str:
-                    pid = int(pid_str); print(f"  > Port {port} busy with PID process: {pid}. Stopping..."); os.kill(pid, signal.SIGKILL); time.sleep(1); print(f"  > Процес {pid} зупинено.")
+                    pid = int(pid_str); print(f"  > Port {port} busy with PID process: {pid}. Stopping..."); os.kill(pid, signal.SIGKILL); time.sleep(1); print(f"  > Process {pid} has been stopped.")
         print(f"✅ Port {port} is free.")
     except (FileNotFoundError, ValueError, PermissionError) as e: print(f"  > Failed to automatically release port: {e}.")
 

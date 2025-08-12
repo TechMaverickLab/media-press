@@ -22,3 +22,5 @@ output/*
 # Keep the directories themselves in git
 !source/.gitkeep
 !output/.gitkeep
+
+journal/*
